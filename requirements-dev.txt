@@ -1,0 +1,3 @@
+# Optional: headless page checks and screenshots (app/tests/screenshots.py)
+-r requirements.txt
+playwright==1.63.0

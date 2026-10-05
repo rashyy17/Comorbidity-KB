@@ -1,0 +1,99 @@
+# Assumptions and decisions
+
+Every judgment call made while implementing the writeup (`Comorbidity_Cluster_KB_Writeup-2.docx`),
+with the reason. Data were pulled on **2026-10-05**; Open Targets and KEGG are live APIs, so later
+runs can return slightly different numbers.
+
+## A. Disease-gene associations (Open Targets)
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| A1 | **Open Targets now uses MONDO IDs, not EFO, for 3 of the 4 diseases.** PCOS = `MONDO_0008487`, T2D = `MONDO_0005148`, Obesity = `MONDO_0011122` ("obesity disorder"). Only NAFLD still resolves to an EFO term (`EFO_1001248`, "non-alcoholic fatty liver"). The `source_id` property on `Disease` therefore holds the Open Targets ontology ID, whatever its prefix. Where Open Targets lists an EFO cross-reference it is stored in `efo_xref` (PCOS → EFO:0000660, Obesity → EFO:0001073). | The writeup says "EFO ID". The platform has migrated, and the old IDs (e.g. `EFO_0001073`) now return nothing. |
+| A2 | IDs are resolved with the Open Targets `search` endpoint and checked against an expected list (`config.EXPECTED_IDS`). If search drifts, the pipeline warns and keeps the expected ID. | Reproducibility. Search ranking can change between releases. |
+| A3 | The GraphQL argument is still named `efoId`, even for MONDO IDs. | That is the current API schema. |
+| A4 | **Association threshold: overall score ≥ 0.1** for an `ASSOCIATED_WITH` edge. Sensitivity runs at 0.2 and 0.3 are reported too. | The writeup gives no cutoff. Below 0.1, most associations rest on a single weak text-mining hit. A fixed global cutoff is simpler and more transparent than a per-disease top-N. **Disclosure:** I looked at the validation genes' scores (INSR, IRS1, IGF1) while exploring the API, before fixing this threshold. IGF1 only clears 0.1 narrowly (0.105–0.129). That is why the sensitivity table exists and why VALIDATION.md flags IGF1 as fragile. |
+| A5 | **Score distributions differ widely between diseases.** At score ≥ 0.1 there are 287 genes for PCOS, 422 for NAFLD, 1,559 for Obesity and 2,244 for T2D. Open Targets lists 3,875 / 5,761 / 10,378 / 10,206 associations in total. | T2D and obesity have large GWAS and drug programs; PCOS does not. A shared cutoff therefore makes "T2D ∩ Obesity" overlaps large almost by construction (677 shared genes vs 112 for NAFLD ∩ PCOS). This is reported as a limitation, not corrected for. |
+| A6 | Per-datatype evidence scores (genetic, literature, clinical, animal model, …) are stored on each edge as `evidence_types` (datatypes scoring ≥ 0.1). Edges get `drug_only = true` when the only such datatype is `clinical` (ChEMBL drug evidence), and `literature_only = true` when it is only `literature`. | Discovered during analysis: the 4-disease hub list was dominated by mitochondrial complex I subunits (NDUF*, MT-ND*). Their links are largely or entirely drug evidence: metformin acts on complex I and is used or trialled in all four diseases. The flag lets every hub query be re-run with `exclude_drug_only = true` as a robustness view. The primary results still follow the writeup's definition (all edges). |
+| A7 | Gene node `id` = Ensembl gene ID from Open Targets; `symbol` = HGNC approved symbol. | Open Targets keys targets by Ensembl ID. |
+
+## B. Gene-pathway mapping (KEGG)
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| B1 | `entrez_id` comes from KEGG: the numeric part of a KEGG human gene ID (`hsa:3643`) is the NCBI Entrez Gene ID. Symbols are matched to KEGG's primary symbol (`rest.kegg.jp/list/hsa`), with a fallback to an unambiguous alias (11 genes). 3,294 of 3,303 Open Targets symbols mapped. | Open Targets no longer exposes NCBI Gene cross-references, and the writeup asks for KEGG anyway. |
+| B2 | Only pathways containing at least one KB gene are loaded (366 of 372 human KEGG pathways). Each `Pathway` stores `size`, the number of human genes in it across all of KEGG, and `category`: `overview` (hsa011xx/012xx global maps), `disease` (hsa05xxx) or `pathway`. | `size` is needed for enrichment. Overview maps such as "Metabolic pathways" are aggregates and are excluded from hub-pathway calls. |
+| B3 | **Hub pathway definition.** The literal rule ("a pathway touched by genes of 2+ diseases") makes 351 of 366 pathways hubs, which is uninformative. A pathway is therefore linked to a disease only when that disease's genes are **over-represented** in it: hypergeometric test, universe = the 9,451 human genes with at least one KEGG pathway, Benjamini–Hochberg FDR < 0.05 within each disease. A hub pathway is enriched in 2+ diseases. The naive count is still provided (`hub_pathways_naive` query). | Large disease gene sets hit almost every pathway by chance, so degree only means something after accounting for pathway size. |
+| B4 | KEGG disease maps (hsa05xxx) are kept but labelled; only overview maps are excluded. | They are legitimate KEGG pathways, but readers should see which hits are "disease maps" (e.g. Parkinson disease). |
+
+## C. Gene expression (GEO)
+
+All four datasets named in the writeup were usable, so no substitutes were needed. The per-dataset checks are in `results/geo_datasets.json`.
+
+| # | Dataset | Groups verified from GEO sample characteristics | Comparison used | Preprocessing |
+|---|---|---|---|---|
+| C1 | **GSE34526** PCOS, GPL570, granulosa cells | 7 "Polycystic ovary Syndrome", 3 "normal" | PCOS (7) vs normal (3) | Values were linear (median about 90–160) despite the metadata saying RMA, with unequal sample medians. Applied log2 and quantile normalization. |
+| C2 | **GSE16415** T2D, GPL2986 (Applied Biosystems Human Genome Survey v2), visceral (omental) adipose | 5 "type-2 diabetes mellitus", 5 "control" | T2D (5) vs control (5) | Linear "trim-mean-scaled" intensities. Floored at the 1st percentile of positive values, then log2 and quantile normalization. |
+| C3 | **GSE48452** NAFLD, GPL11532 (HuGene 1.1 ST), liver | 14 Control, 27 Healthy obese, 14 Steatosis, 18 NASH | **NAFLD = Steatosis + NASH (32) vs Control (14)** | Already log2 RMA. |
+| C4 | **GSE55200** Obesity, GPL17692 (HuGene 2.1 ST, not HTA as one might assume), subcutaneous adipose | 7 lean healthy, 8 metabolically healthy obese, 8 metabolically unhealthy obese | **Obesity = MHO + MUO (16) vs lean (7)** | Already log2 RMA. |
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| C5 | NAFLD vs **Control** is the primary comparison, as the writeup specifies "relative to healthy controls". Controls are leaner (median BMI 25.8 vs about 48 for steatosis/NASH), so this contrast partly reflects obesity. A sensitivity contrast, NAFLD vs **Healthy obese**, is also computed (`de_NAFLD_vs_Healthyobese.csv`). Its fold changes correlate with the primary contrast at Spearman ρ = 0.52. | Documenting the confound rather than hiding it. |
+| C6 | Obesity merges MHO and MUO. | The writeup frames the dataset as lean vs obese; merging maximizes power. |
+| C7 | SOFT files are downloaded over **HTTPS** and parsed locally with GEOparse (`get_GEO(filepath=…)`). | GEOparse's built-in FTP download failed with size-mismatch errors, and parallel HTTPS requests were rate-limited (HTTP 403). Downloads are sequential with retries, and every file is checked with `gzip -t`. |
+| C8 | Probe → gene: GPL570/GPL2986 use the `Gene Symbol` column, dropping probes annotated to more than one gene (`///`). Gene ST arrays use the second field of the first `gene_assignment` entry, keeping only `main` probesets where that column exists. When several probes map to one gene, the one with the highest mean expression is kept. | Standard, simple collapse rules. |
+| C9 | Probes in the bottom 20% of mean expression are dropped before testing. | Removes noise-floor probes, which helps most on the ABI array. |
+| C10 | **DE method:** a Python port of limma's two-group moderated t-test (`src/limma_py.py`: `lmFit` + `eBayes` with `fitFDist` and `trigammaInverse`), with Benjamini–Hochberg adjusted p-values. | The writeup asks for "limma-style". Empirical-Bayes variance shrinkage matters with 3–5 samples per group. It is not R limma itself and may differ slightly in the last decimals. |
+| C11 | **Significance for `EXPRESSED_IN.significant`: nominal p < 0.05, no fold-change floor.** FDR (`adj_p`) is stored too. | With 3 vs 7 (PCOS) and 5 vs 5 (T2D) samples, FDR < 0.05 yields 3 and 0 genes, which would make the expression layer empty for two diseases. Nominal p is a deliberately lenient screen. Its consequences are quantified in VALIDATION.md. |
+| C12 | **`EXPRESSED_IN` edges are written for every Open Targets gene–disease pair that was measured** on the array (3,275 edges), not only for significant DEGs. The `significant` property marks DEGs, and all hub queries filter on it. | Strict superset of the writeup's rule. Non-significant fold changes stay queryable and drive the heatmap. Restricting to significant edges is a one-line `WHERE e.significant`. |
+| C13 | Direction is `up` if log2FC > 0 (disease higher than control), otherwise `down`. | — |
+| C14 | Sanity checks used to judge each dataset "usable": known markers behave as expected. Obesity: LEP, SPP1 and MMP9 up; CIDEA and SLC27A2 down (FDR < 1e-4). T2D: SLC2A4/GLUT4, ADIPOQ and PPARG down (p < 0.03). NAFLD: CYP7A1 and PLIN1 up, IGFBP2 down. PCOS: STAR and CYP19A1 among the highest-expressed genes, as expected for luteinized granulosa cells. AMH has no GPL570 probe. | The writeup asks to verify datasets and substitute unusable ones. None failed, but T2D and PCOS are **underpowered** (π0 ≈ 0.85 and 0.70). |
+
+## D. Graph / database
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| D1 | Neo4j 5.26 (community) runs in the user's Docker container `neo4j-kb` at `bolt://localhost:7687` / `http://localhost:7474`. Connection settings come from the `NEO4J_URI`, `NEO4J_USER` and `NEO4J_PASSWORD` environment variables; the password has no default in code (see G4). | The loader deletes and reloads only `Disease`, `Gene` and `Pathway` nodes, so other data in the database is untouched. |
+| D2 | A **SQLite mirror** (`results/comorbidity_kb.sqlite`, same schema as tables) and a NetworkX **GraphML** export are always written. If Neo4j is unreachable, steps 4–5 fall back to SQLite automatically. | Makes the KB usable without Docker. Neo4j *was* available for this run (`results/backend.txt` = `neo4j`). |
+| D3 | Every hub query exists in both Cypher (`queries/hubs.cypher`) and SQL (`queries/hubs.sql`). `s05_queries.py` runs both under all four scenarios and asserts identical results (`results/backend_crosscheck.txt`: **all passed**). | Protects against query bugs on either side. |
+| D4 | The cross-disease overlap is not stored. It is computed at query time, as in the writeup. Pathway enrichment statistics are computed in Python from counts the database returns. | Writeup §3.2. Cypher has no hypergeometric function without plugins. |
+| D5 | **Hub gene** = degree ≥ 2 over `ASSOCIATED_WITH` edges at the chosen score. **Expression-consistent hub** = a hub that is a significant DEG in ≥ 2 of *its associated* diseases, all in the same direction. Hubs significant in ≥ 2 diseases with mixed directions are reported as **discordant**. | Writeup §3.4. Expression in a disease the gene isn't associated with is not counted. |
+
+## E. Validation and figures
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| E1 | Besides the three named genes, validation adds three checks: (1) are hubs enriched for KEGG *Insulin resistance* (hsa04931) members? (2) a gene-label permutation null for expression consistency; (3) a **genome-wide background** concordance rate. | The three named genes alone cannot show that the pipeline beats chance, and hsa04931 is an external reference set I did not choose by hand. Hub status comes from Open Targets, not KEGG, so the test is not circular. |
+| E2 | Figures 1 and 2 show hubs **robust to removing drug-only edges**, so the plots aren't dominated by metformin-target artifacts. The complete primary list is in `results/hub_genes.csv`. | Readability and honesty. Both lists are provided. |
+| E3 | Disease colours use the first four slots of a colour-blind-validated categorical palette. Every coloured mark also carries a text label. | Accessibility. |
+
+## F. Web app (`app/`)
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| F1 | **Streamlit 1.65** with `st.navigation` and grouped pages (Overview / Explore / Trust & tools). Each page is a `render()` function in `app/views/`. | As requested. A single entry point (`app/app.py`) keeps the sidebar and backend notice in one place. |
+| F2 | **Data access:** each node and edge table is read **once** from Neo4j (or SQLite) and cached with `st.cache_data`. Hub, overlap and enrichment calculations then run in pandas, using the same rules as `src/s05_queries.py`. Only the Query Console sends live Cypher. | The KB is small (about 20k edges), so this makes every filter instant. The app's numbers were checked against the pipeline: 855 / 99 / 41 / 9 / 143 with all links and 753 / 48 / 36 / 8 / 148 without drug-only links, an exact match. |
+| F3 | **Fallback:** if Neo4j cannot be reached (3 s timeout) or holds no `Disease` nodes, the app reads `results/comorbidity_kb.sqlite` read-only and shows a sidebar notice. The Cypher console is then replaced by a read-only SQL `SELECT` box. | As requested. Tested by pointing `NEO4J_URI` at a closed port: all pages still load. |
+| F4 | **Query Console safety, two layers.** (1) Queries containing CREATE, MERGE, DELETE, DETACH, SET, REMOVE, DROP, FOREACH or LOAD are rejected; string literals and comments are ignored, so `CONTAINS 'set'` is allowed. (2) Queries run in a Neo4j **READ transaction** (`execute_read`), so the server also refuses writes the keyword filter might miss. Results are capped at 1,000 rows. | The request named six keywords. DETACH, FOREACH and LOAD were added because they also write or read external files. The READ transaction is the real guarantee. |
+| F5 | **"Exclude drug-only links" is ON by default** on Hub Explorer, Disease Overlap, Network and Expression, and OFF on Pathways. The Home page shows both numbers. | The request asked for it on by default in the Hub Explorer. Pathways defaults to the primary (writeup) definition so it matches `results/hub_pathways.csv`. |
+| F6 | The Score slider starts at 0.1 because weaker associations are not stored in the KB (assumption A4). | — |
+| F7 | **Expression heatmap** shows `EXPRESSED_IN` values only, i.e. only where the gene is associated with that disease; other cells are grey. Genes must be measured in 2+ of their diseases to appear. | The app reads only from the KB. `results/figures/fig3_expression_heatmap.png` additionally shows non-associated fold changes from the raw DE tables (hatched). |
+| F8 | **Overlap chart** is UpSet-style (exclusive intersection bars over a membership dot matrix) rather than a Venn diagram. | It stays readable for 4 sets (15 regions), where 4-set Venn diagrams don't. |
+| F9 | **Graphs** use pyvis (vis.js) embedded with `st.iframe`, with the vis.js library **inlined** rather than loaded from a CDN. | The CDN version occasionally ran the graph code before vis.js loaded (`vis is not defined`), leaving a blank graph. `st.components.v1.html` is deprecated in this Streamlit version. |
+| F10 | Missing numbers in tables are shown as "—". Columns with gaps are rendered as formatted text, so they sort as text in the app; CSV downloads keep numeric values. | `st.dataframe` otherwise prints NaN as "None". |
+| F11 | Validation page: the bottom-line table and analysis sections are parsed directly from `VALIDATION.md`. The caveat statements take their numbers (75.6% vs 82%, p = 0.19; 99 → 48; sample sizes) from `results/validation.json`, `sensitivity.csv` and `geo_datasets.json`. | They stay in sync with the pipeline output. |
+| F12 | Disease colours match `results/figures` (validated colour-blind-safe slots: PCOS blue, T2D orange, NAFLD green, Obesity amber). Up is red and down is blue throughout. | Consistency, as requested. |
+| F13 | Screenshots are taken with Playwright driving the **system Google Chrome** (`channel="chrome"`), falling back to Playwright's Chromium. The app runs on port 8501. | Playwright's own Chromium download was still in progress at the time. |
+
+## G. Deployment (Streamlit Community Cloud)
+
+| # | Assumption / decision | Why |
+|---|---|---|
+| G1 | **Demo mode = bundled SQLite.** Without Neo4j credentials (the Cloud case), or with `KB_BACKEND=sqlite`, the app never tries Neo4j. Every page reads `results/comorbidity_kb.sqlite`, opened read-only. The sidebar shows "Running in demo mode on the bundled database" and says whether Neo4j is unconfigured or unreachable. | The deployed app has no database server. Skipping the connection attempt avoids a timeout on every cold start. All 9 pages pass the smoke test in this mode. |
+| G2 | **Query Console in demo mode offers read-only SQL** (with 6 example queries mirroring the Cypher ones) rather than being disabled. A notice states that live Cypher only works locally with Neo4j. Two independent guards: (1) only a single `SELECT`/`WITH` statement is accepted, and write/DDL keywords (INSERT, UPDATE, DELETE, DROP, CREATE, ALTER, REPLACE, ATTACH, DETACH, PRAGMA, VACUUM, REINDEX) are rejected; (2) SQLite is opened with `mode=ro`, so the engine refuses writes anyway (verified). | Keeps the console useful on the public demo, and the SQLite tables mirror the graph schema one to one. |
+| G3 | **Committed for the app:** `results/comorbidity_kb.sqlite` (1.8 MB), the results CSV/JSON files read by the Validation page, `VALIDATION.md`, figures and screenshots. **Also committed:** `data/processed/` (12 MB of tidy pipeline tables, including full DE results) so analyses can be reproduced without re-downloading. **Git-ignored:** `data/raw/` (about 90 MB of GEO/KEGG/Open Targets downloads, re-fetched by `run_all.sh`), `data/tmp/`, `.venv/`, logs, `.streamlit/secrets.toml`. | Keeps the repo at about 25 MB, well under GitHub's 100 MB guidance. |
+| G4 | **No secrets in the repo.** Credentials come only from environment variables or `st.secrets`, with environment variables taking priority. The previous hard-coded default password was removed from `app/kb.py`, `src/config.py`, `docker-compose.yml` (now `${NEO4J_PASSWORD}`), the scripts and the docs. A git-ignored local `.streamlit/secrets.toml` keeps the author's local app connected to Neo4j. `.streamlit/secrets.toml.example` documents the keys. | As requested. Note: the local Neo4j container still uses its existing password. Rotate it if the password was ever shared. |
+| G5 | **Requirements split.** `requirements.txt` holds only the app's 7 packages, all pinned: streamlit, pandas, numpy, scipy, plotly, pyvis, neo4j. Cloud installs this file. `requirements-pipeline.txt` adds GEOparse, matplotlib, networkx, requests and statsmodels; `requirements-dev.txt` adds Playwright. The app's Benjamini-Hochberg correction was reimplemented in numpy (checked identical to statsmodels) so statsmodels is not an app dependency. `neo4j` stays because the same app connects to Neo4j when run locally. | Smaller, faster Cloud builds. |
+| G6 | Entry point `app/app.py`. All paths are derived from `Path(__file__)`. No absolute or user-specific paths exist in code (grep-verified). The SQLite URI is built with `Path.as_uri()`, so paths with spaces or special characters work. | Portability. |
+| G7 | `.streamlit/config.toml`: light theme matching the figure palette; `toolbarMode = "viewer"` hides developer menu items; `showErrorDetails = "none"` hides tracebacks from public viewers; usage stats are off. | Clean public deployment. |
+| G8 | Python 3.12 is recommended in Cloud's Advanced settings. It is the tested version, and pandas 3 needs 3.11 or newer. | Cloud chooses the Python version in its UI, not from a file. |

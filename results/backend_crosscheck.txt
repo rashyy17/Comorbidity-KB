@@ -1,0 +1,30 @@
+primary backend: neo4j
+hub_genes({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=855 rows, sqlite=855 rows, identical=True
+pathway_disease_counts({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=1252 rows, sqlite=1252 rows, identical=True
+disease_kegg_gene_counts({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=4 rows, sqlite=4 rows, identical=True
+hub_pathways_naive({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=351 rows, sqlite=351 rows, identical=True
+expression_consistent_hubs({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=41 rows, sqlite=41 rows, identical=True
+expression_discordant_hubs({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=9 rows, sqlite=9 rows, identical=True
+shared_genes_pairwise({'min_score': 0.1, 'exclude_drug_only': False}): neo4j=6 rows, sqlite=6 rows, identical=True
+hub_genes({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=483 rows, sqlite=483 rows, identical=True
+pathway_disease_counts({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=1027 rows, sqlite=1027 rows, identical=True
+disease_kegg_gene_counts({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=4 rows, sqlite=4 rows, identical=True
+hub_pathways_naive({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=325 rows, sqlite=325 rows, identical=True
+expression_consistent_hubs({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=21 rows, sqlite=21 rows, identical=True
+expression_discordant_hubs({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=4 rows, sqlite=4 rows, identical=True
+shared_genes_pairwise({'min_score': 0.2, 'exclude_drug_only': False}): neo4j=6 rows, sqlite=6 rows, identical=True
+hub_genes({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=289 rows, sqlite=289 rows, identical=True
+pathway_disease_counts({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=849 rows, sqlite=849 rows, identical=True
+disease_kegg_gene_counts({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=4 rows, sqlite=4 rows, identical=True
+hub_pathways_naive({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=281 rows, sqlite=281 rows, identical=True
+expression_consistent_hubs({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=16 rows, sqlite=16 rows, identical=True
+expression_discordant_hubs({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=2 rows, sqlite=2 rows, identical=True
+shared_genes_pairwise({'min_score': 0.3, 'exclude_drug_only': False}): neo4j=6 rows, sqlite=6 rows, identical=True
+hub_genes({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=753 rows, sqlite=753 rows, identical=True
+pathway_disease_counts({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=1241 rows, sqlite=1241 rows, identical=True
+disease_kegg_gene_counts({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=4 rows, sqlite=4 rows, identical=True
+hub_pathways_naive({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=350 rows, sqlite=350 rows, identical=True
+expression_consistent_hubs({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=36 rows, sqlite=36 rows, identical=True
+expression_discordant_hubs({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=8 rows, sqlite=8 rows, identical=True
+shared_genes_pairwise({'min_score': 0.1, 'exclude_drug_only': True}): neo4j=6 rows, sqlite=6 rows, identical=True
+ALL CYPHER/SQL CROSS-CHECKS PASSED: True

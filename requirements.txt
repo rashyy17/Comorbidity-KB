@@ -1,0 +1,8 @@
+# Streamlit app (app/app.py) - this is what Streamlit Community Cloud installs.
+streamlit==1.65.0
+pandas==3.0.6
+numpy==2.5.3
+scipy==1.18.1
+plotly==7.1.0
+pyvis==0.3.2
+neo4j==6.3.1

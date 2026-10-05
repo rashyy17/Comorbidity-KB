@@ -1,0 +1,7 @@
+disease_a,disease_b,shared_genes
+NAFLD,Obesity,203
+NAFLD,PCOS,112
+NAFLD,T2D,279
+Obesity,PCOS,182
+Obesity,T2D,677
+PCOS,T2D,209

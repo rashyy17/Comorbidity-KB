@@ -1,0 +1,15 @@
+# Python / tooling
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Large or re-creatable inputs (re-downloaded by ./run_all.sh)
+data/raw/
+data/tmp/
+*.part
+data/streamlit.log
+
+# Secrets
+.streamlit/secrets.toml
+.env

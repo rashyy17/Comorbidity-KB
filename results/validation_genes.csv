@@ -1,0 +1,13 @@
+gene,disease,ot_score,evidence_types,measured_in_geo,log2FC,p_value,significant
+INSR,NAFLD,0.354,clinical;genetic_association;literature,True,-0.174,0.0236346304015394,True
+INSR,Obesity,0.293,animal_model;clinical;literature,True,-0.58,1.3042110028231342e-08,True
+INSR,PCOS,0.265,genetic_association;literature,True,-1.249,0.0707505452104168,False
+INSR,T2D,0.77,animal_model;clinical;genetic_association;genetic_literature;literature;somatic_mutation,True,-0.462,0.5269599514306108,False
+IRS1,NAFLD,0.36,genetic_association;literature,True,0.047,0.7498192767157315,False
+IRS1,Obesity,0.5,animal_model;genetic_association;literature,True,-0.305,0.0296479464508609,True
+IRS1,PCOS,0.105,literature,True,-0.343,0.6565863036946894,False
+IRS1,T2D,0.659,animal_model;genetic_association;genetic_literature;literature,True,-1.004,0.0767298214483398,False
+IGF1,NAFLD,0.114,literature,True,-0.704,0.0043146909977131,True
+IGF1,Obesity,0.129,animal_model;literature,True,-0.312,0.0754837510914668,False
+IGF1,PCOS,0.11,literature,True,-0.358,0.4509904611210367,False
+IGF1,T2D,0.126,animal_model;literature,True,-0.236,0.5379605305749142,False

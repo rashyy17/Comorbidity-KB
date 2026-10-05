@@ -1,0 +1,122 @@
+[
+  {
+    "disease": "PCOS",
+    "gse": "GSE34526",
+    "platform": "GPL570",
+    "tissue": "ovarian granulosa cells",
+    "group_counts": {
+      "Polycystic ovary Syndrome": 7,
+      "normal": 3
+    },
+    "case_groups": [
+      "Polycystic ovary Syndrome"
+    ],
+    "control_groups": [
+      "normal"
+    ],
+    "n_case": 7,
+    "n_control": 3,
+    "genes_tested": 18505,
+    "n_p05": 1961,
+    "n_fdr05": 3,
+    "prior_df_d0": 3.13,
+    "input_scale": "linear",
+    "ot_genes_measured": 229,
+    "ot_genes_significant": 26
+  },
+  {
+    "disease": "T2D",
+    "gse": "GSE16415",
+    "platform": "GPL2986",
+    "tissue": "visceral (omental) adipose tissue",
+    "group_counts": {
+      "control": 5,
+      "type-2 diabetes mellitus": 5
+    },
+    "case_groups": [
+      "type-2 diabetes mellitus"
+    ],
+    "control_groups": [
+      "control"
+    ],
+    "n_case": 5,
+    "n_control": 5,
+    "genes_tested": 14686,
+    "n_p05": 1447,
+    "n_fdr05": 0,
+    "prior_df_d0": 3.77,
+    "input_scale": "linear",
+    "ot_genes_measured": 1281,
+    "ot_genes_significant": 150
+  },
+  {
+    "disease": "NAFLD",
+    "gse": "GSE48452",
+    "platform": "GPL11532",
+    "tissue": "liver biopsy",
+    "group_counts": {
+      "Healthy obese": 27,
+      "Nash": 18,
+      "Control": 14,
+      "Steatosis": 14
+    },
+    "case_groups": [
+      "Steatosis",
+      "Nash"
+    ],
+    "control_groups": [
+      "Control"
+    ],
+    "n_case": 32,
+    "n_control": 14,
+    "genes_tested": 18073,
+    "n_p05": 2415,
+    "n_fdr05": 61,
+    "prior_df_d0": 4.91,
+    "input_scale": "log2",
+    "sensitivity": {
+      "control_groups": [
+        "Healthy obese"
+      ],
+      "n_control": 27,
+      "n_p05": 3881,
+      "n_fdr05": 841,
+      "log2FC_spearman_vs_primary": 0.516
+    },
+    "median_bmi_by_group": {
+      "Control": 25.8,
+      "Nash": 47.5,
+      "Healthy obese": 40.8,
+      "Steatosis": 48.3
+    },
+    "ot_genes_measured": 374,
+    "ot_genes_significant": 57
+  },
+  {
+    "disease": "Obesity",
+    "gse": "GSE55200",
+    "platform": "GPL17692",
+    "tissue": "subcutaneous adipose tissue",
+    "group_counts": {
+      "metabolically healthy obese MHO": 8,
+      "metabolically unhealthy obese MUO": 8,
+      "lean healthy LH": 7
+    },
+    "case_groups": [
+      "metabolically healthy obese MHO",
+      "metabolically unhealthy obese MUO"
+    ],
+    "control_groups": [
+      "lean healthy LH"
+    ],
+    "n_case": 16,
+    "n_control": 7,
+    "genes_tested": 22584,
+    "n_p05": 6392,
+    "n_fdr05": 3865,
+    "prior_df_d0": 2.03,
+    "input_scale": "log2",
+    "ot_genes_measured": 1391,
+    "ot_genes_significant": 508
+  }
+]

@@ -1,0 +1,5 @@
+min_score,exclude_drug_only,hub_genes,hub_genes_4_diseases,hub_genes_3plus,expression_consistent_hubs,expression_discordant_hubs,hub_pathways_enriched_2plus,hub_pathways_naive_2plus,INSR_n_diseases,INSR_expr_consistent,IRS1_n_diseases,IRS1_expr_consistent,IGF1_n_diseases,IGF1_expr_consistent
+0.1,False,855,99,255,41,9,143,351,4,True,4,False,4,False
+0.2,False,483,61,151,21,4,57,325,4,True,3,False,0,False
+0.3,False,289,55,76,16,2,36,281,2,False,3,False,0,False
+0.1,True,753,48,166,36,8,148,350,4,True,4,False,4,False

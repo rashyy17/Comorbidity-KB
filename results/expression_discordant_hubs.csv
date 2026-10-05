@@ -1,0 +1,10 @@
+symbol,n_diseases,diseases,deg_diseases,n_deg,directions
+GHR,3,"T2D,NAFLD,Obesity","NAFLD,Obesity,T2D",3,"up,down,down"
+GIPR,4,"PCOS,T2D,NAFLD,Obesity","Obesity,T2D",2,"down,up"
+C9orf72,3,"PCOS,T2D,Obesity","Obesity,PCOS",2,"down,up"
+CA4,3,"PCOS,T2D,Obesity","Obesity,PCOS",2,"down,up"
+CD36,3,"T2D,NAFLD,Obesity","NAFLD,Obesity",2,"up,down"
+FABP4,3,"T2D,NAFLD,Obesity","NAFLD,Obesity",2,"up,down"
+CDKN2B,2,"T2D,Obesity","Obesity,T2D",2,"up,down"
+LPL,2,"T2D,NAFLD","NAFLD,T2D",2,"up,down"
+TNFRSF11B,2,"NAFLD,Obesity","NAFLD,Obesity",2,"down,up"

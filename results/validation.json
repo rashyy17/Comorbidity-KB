@@ -1,0 +1,136 @@
+{
+  "validation_genes": {
+    "INSR": {
+      "degree_by_threshold": {
+        "0.1": 4,
+        "0.2": 4,
+        "0.3": 2
+      },
+      "hub_at_primary_threshold": true,
+      "expression_consistent": true
+    },
+    "IRS1": {
+      "degree_by_threshold": {
+        "0.1": 4,
+        "0.2": 3,
+        "0.3": 3
+      },
+      "hub_at_primary_threshold": true,
+      "expression_consistent": false
+    },
+    "IGF1": {
+      "degree_by_threshold": {
+        "0.1": 4,
+        "0.2": 0,
+        "0.3": 0
+      },
+      "hub_at_primary_threshold": true,
+      "expression_consistent": false
+    }
+  },
+  "insulin_resistance_enrichment": {
+    "reference_set": "KEGG hsa04931 Insulin resistance (genes in the KB)",
+    "hub_in_set": 28,
+    "hub_not_in_set": 507,
+    "nonhub_in_set": 26,
+    "nonhub_not_in_set": 1198,
+    "odds_ratio": 2.54,
+    "p_value": 0.000677496792569914,
+    "hub_members": [
+      "AGT",
+      "AKT1",
+      "CD36",
+      "FOXO1",
+      "GSK3B",
+      "IKBKB",
+      "IL6",
+      "INS",
+      "INSR",
+      "IRS1",
+      "MAPK8",
+      "MTOR",
+      "NFKB1",
+      "NOS3",
+      "PIK3R1",
+      "PPARA",
+      "PPARGC1A",
+      "PPP1R3A",
+      "PPP1R3B",
+      "PRKAA1",
+      "PRKAA2",
+      "PRKAB1",
+      "PTEN",
+      "SLC2A2",
+      "SLC2A4",
+      "SREBF1",
+      "STAT3",
+      "TNF"
+    ]
+  },
+  "expression_consistency_permutation": {
+    "observed_consistent": 41,
+    "observed_discordant": 9,
+    "observed_concordance": 0.82,
+    "null_consistent_mean": 12.1,
+    "null_consistent_95pct": [
+      6,
+      20
+    ],
+    "p_consistent_count": 0.0004997501249375312,
+    "null_concordance_mean": 0.488,
+    "p_concordance": 0.0004997501249375312,
+    "n_permutations": 2000
+  },
+  "expression_consistency_background": {
+    "all_genes_sig_in_2plus": 2119,
+    "consistent": 1601,
+    "discordant": 518,
+    "background_concordance": 0.756,
+    "hub_concordance": 0.82,
+    "binomial_p_hub_vs_background": 0.1865941208878228
+  },
+  "dataset_log2fc_correlation": [
+    {
+      "a": "NAFLD",
+      "b": "Obesity",
+      "n_genes": 16358,
+      "spearman_rho": 0.162,
+      "p_value": 3.94012699601262e-97
+    },
+    {
+      "a": "NAFLD",
+      "b": "PCOS",
+      "n_genes": 13837,
+      "spearman_rho": 0.2,
+      "p_value": 2.4343316673549314e-125
+    },
+    {
+      "a": "NAFLD",
+      "b": "T2D",
+      "n_genes": 10000,
+      "spearman_rho": 0.085,
+      "p_value": 1.66236134374782e-17
+    },
+    {
+      "a": "Obesity",
+      "b": "PCOS",
+      "n_genes": 15236,
+      "spearman_rho": 0.162,
+      "p_value": 1.3749375616828397e-89
+    },
+    {
+      "a": "Obesity",
+      "b": "T2D",
+      "n_genes": 9857,
+      "spearman_rho": 0.406,
+      "p_value": 0.0
+    },
+    {
+      "a": "PCOS",
+      "b": "T2D",
+      "n_genes": 9029,
+      "spearman_rho": 0.271,
+      "p_value": 6.411308481965036e-152
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+id,name,full_name,source_id,efo_xref,ot_total_associations
+PCOS,PCOS,polycystic ovary syndrome,MONDO_0008487,EFO:0000660,3875
+T2D,T2D,type 2 diabetes mellitus,MONDO_0005148,,10206
+NAFLD,NAFLD,non-alcoholic fatty liver,EFO_1001248,,5761
+Obesity,Obesity,obesity disorder,MONDO_0011122,EFO:0001073,10378

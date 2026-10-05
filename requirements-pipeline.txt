@@ -1,0 +1,7 @@
+# Full data pipeline (./run_all.sh): app requirements plus the build-time dependencies.
+-r requirements.txt
+GEOparse==2.0.4
+matplotlib==3.11.2
+networkx==3.7
+requests==2.34.2
+statsmodels==0.15.0
